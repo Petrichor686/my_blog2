@@ -73,7 +73,7 @@ export default function PostCard({ post, pinned }: Props) {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', paddingRight: pinned ? '58px' : '0' }}>
         <span
           ref={badgeRef}
           style={{
