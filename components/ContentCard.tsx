@@ -12,14 +12,13 @@ interface Props {
 const typeLabels: Record<string, string> = {
   project: '项目',
   essay: '随笔',
-  moment: '说说',
 };
 
 export default function ContentCard({ post, index }: Props) {
   const badgeRef = useRef<HTMLDivElement>(null);
 
   const linkHref =
-    post.type === 'moment' ? '/moments' : `/${post.type === 'project' ? 'projects' : 'essays'}/${post.slug}`;
+    post.type === 'project' ? `/projects/${post.slug}` : `/essays/${post.slug}`;
 
   const handleEnter = () => {
     if (badgeRef.current) {
