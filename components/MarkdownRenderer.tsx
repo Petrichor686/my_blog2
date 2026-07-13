@@ -21,12 +21,13 @@ export default function MarkdownRenderer({ content }: Props) {
           h2: ({ children, ...props }) => (
             <h2
               style={{
-                fontSize: '1.4rem',
+                fontSize: 'clamp(1.1rem, 3vw, 1.4rem)',
                 fontWeight: 700,
                 color: 'var(--text-primary)',
                 marginTop: '48px',
                 marginBottom: '16px',
                 fontFamily: 'var(--font-mono)',
+                wordBreak: 'break-word',
               }}
               {...props}
             >
@@ -36,7 +37,7 @@ export default function MarkdownRenderer({ content }: Props) {
           h3: ({ children, ...props }) => (
             <h3
               style={{
-                fontSize: '1.15rem',
+                fontSize: 'clamp(1rem, 2.5vw, 1.15rem)',
                 fontWeight: 600,
                 color: 'var(--text-primary)',
                 marginTop: '36px',
@@ -46,6 +47,20 @@ export default function MarkdownRenderer({ content }: Props) {
             >
               {children}
             </h3>
+          ),
+          img: ({ src, alt, ...props }: any) => (
+            <img
+              src={src}
+              alt={alt}
+              loading="lazy"
+              style={{
+                maxWidth: '100%',
+                height: 'auto',
+                borderRadius: 'var(--radius-sm)',
+                margin: '16px 0',
+              }}
+              {...props}
+            />
           ),
           p: ({ children, ...props }) => (
             <p style={{ marginBottom: '16px' }} {...props}>{children}</p>
@@ -68,6 +83,7 @@ export default function MarkdownRenderer({ content }: Props) {
                   color: 'var(--code-highlight)',
                   padding: '1px 6px',
                   borderRadius: '3px',
+                  wordBreak: 'break-word',
                 }}
                 {...props}
               >
