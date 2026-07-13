@@ -8,6 +8,7 @@ import ClickBubble from '@/components/ClickBubble';
 export const metadata: Metadata = {
   title: 'petrichor.dev',
   description: '一个记录项目实战、生活随笔与碎片化说说的个人博客',
+  icons: { icon: '/favicon.ico' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
