@@ -41,6 +41,7 @@ export default async function EssaysPage() {
 
         {/* 普通随笔 */}
         <div
+          className="post-list-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',

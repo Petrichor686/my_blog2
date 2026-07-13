@@ -104,6 +104,51 @@ ul, ol {
   .container {
     padding: 0 16px;
   }
+
+  /* Navbar: show hamburger, hide desktop links */
+  .desktop-nav { display: none !important; }
+  .mobile-hamburger { display: flex !important; }
+  .mobile-menu { display: flex !important; }
+
+  /* Hero spacing */
+  section { padding-top: 60px !important; padding-bottom: 40px !important; }
+
+  /* Homepage 3-col grid → 1-col */
+  .home-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Project/essay list grid */
+  .post-list-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Article detail page */
+  article { padding-top: 40px !important; }
+
+  /* Admin form grid → rows */
+  .admin-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-form-grid > span {
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+
+  /* Smaller card padding */
+  .content-card-padding {
+    padding: 20px 18px 18px !important;
+  }
+
+  /* Login form */
+  .login-form-card {
+    padding: 24px 20px !important;
+  }
 }
 
 @keyframes blink {

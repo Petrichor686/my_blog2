@@ -42,6 +42,7 @@ export default async function ProjectsPage() {
 
         {/* 普通项目 */}
         <div
+          className="post-list-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',

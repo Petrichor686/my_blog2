@@ -15,7 +15,7 @@ export default async function HomePage() {
       {/* Hero 区域 */}
       <section
         style={{
-          padding: '100px 0 80px',
+          padding: 'clamp(60px, 10vw, 100px) 0 clamp(40px, 8vw, 80px)',
         }}
       >
         {/* 终端提示符 */}
@@ -59,6 +59,7 @@ export default async function HomePage() {
         </div>
 
         <div
+          className="home-cards-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',

@@ -113,7 +113,7 @@ export default function AdminPostsPage() {
           {editing ? '编辑文章' : '新建文章'}
         </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px 16px', alignItems: 'center' }}>
+        <div className="admin-form-grid" style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px 16px', alignItems: 'center' }}>
           <Label>类型</Label>
           <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as 'project' | 'essay' })} style={inputStyle}>
             <option value="project">项目</option>

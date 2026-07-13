@@ -125,6 +125,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={handleSubmit}
+          className="login-form-card"
           style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border-color)',
