@@ -1,3 +1,5 @@
+'use server';
+
 import { supabase } from './supabase';
 import { supabaseAdmin } from './supabase-admin';
 import type { Post, Moment } from './types';
