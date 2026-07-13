@@ -1,9 +1,21 @@
+'use client';
+
+import { useState } from 'react';
+
 interface Props {
   language?: string;
   children: string;
 }
 
 export default function CodeBlock({ language, children }: Props) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
   return (
     <div
       style={{
@@ -35,15 +47,20 @@ export default function CodeBlock({ language, children }: Props) {
           >
             {language}
           </span>
-          <span
+          <button
+            onClick={handleCopy}
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: '0.68rem',
-              color: 'var(--text-muted)',
+              color: copied ? 'var(--accent-amber)' : 'var(--text-muted)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '2px 8px',
             }}
           >
-            copy
-          </span>
+            {copied ? 'copied' : 'copy'}
+          </button>
         </div>
       )}
       <pre

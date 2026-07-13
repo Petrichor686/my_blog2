@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getPostBySlug } from '@/lib/db';
 import CommentSection from '@/components/CommentSection';
-import CodeBlock from '@/components/CodeBlock';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,7 +102,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
         {/* 正文渲染 */}
         <div style={{ fontSize: '1rem', lineHeight: 1.9, color: 'var(--text-secondary)' }}>
-          {post.content ? renderMarkdownContent(post.content) : <p>暂无详细内容...</p>}
+          {post.content ? <MarkdownRenderer content={post.content} /> : <p>暂无详细内容...</p>}
         </div>
 
         {/* 评论区 */}
@@ -115,100 +115,4 @@ export default async function ProjectDetailPage({ params }: Props) {
 function formatDate(s: string) {
   const d = new Date(s);
   return d.toISOString().slice(0, 10);
-}
-
-/** Simple markdown-to-JSX renderer */
-function renderMarkdownContent(content: string) {
-  const lines = content.split('\n');
-  const elements: React.ReactNode[] = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // Code block
-    if (line.trim().startsWith('```')) {
-      const lang = line.trim().slice(3).trim() || undefined;
-      const codeLines: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i].trim().startsWith('```')) {
-        codeLines.push(lines[i]);
-        i++;
-      }
-      elements.push(<CodeBlock key={i} language={lang}>{codeLines.join('\n')}</CodeBlock>);
-      i++;
-      continue;
-    }
-
-    // h2
-    if (line.startsWith('## ')) {
-      elements.push(
-        <h2
-          key={i}
-          style={{
-            fontSize: '1.4rem',
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-            marginTop: '48px',
-            marginBottom: '16px',
-            fontFamily: 'var(--font-mono)',
-          }}
-        >
-          {'// '}
-          {line.slice(3)}
-        </h2>
-      );
-      i++;
-      continue;
-    }
-
-    // Empty line
-    if (line.trim() === '') {
-      i++;
-      continue;
-    }
-
-    // Regular paragraph
-    const paragraph: string[] = [];
-    while (i < lines.length && lines[i].trim() !== '' && !lines[i].trim().startsWith('```') && !lines[i].startsWith('## ')) {
-      paragraph.push(lines[i]);
-      i++;
-    }
-    if (paragraph.length > 0) {
-      elements.push(
-        <p key={i} style={{ marginBottom: '16px' }}>
-          {renderInlineMarkdown(paragraph.join('\n'))}
-        </p>
-      );
-    }
-  }
-
-  return elements;
-}
-
-function renderInlineMarkdown(text: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return (
-        <code
-          key={i}
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.9em',
-            background: 'var(--code-highlight-bg)',
-            color: 'var(--code-highlight)',
-            padding: '1px 6px',
-            borderRadius: '3px',
-          }}
-        >
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    return part;
-  });
 }

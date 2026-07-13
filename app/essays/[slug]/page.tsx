@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getPostBySlug } from '@/lib/db';
 import CommentSection from '@/components/CommentSection';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,7 +103,7 @@ export default async function EssayDetailPage({ params }: Props) {
         {/* 正文 */}
         <div style={{ fontSize: '1rem', lineHeight: 1.9, color: 'var(--text-secondary)' }}>
           {post.content ? (
-            <div style={{ whiteSpace: 'pre-wrap' }}>{post.content}</div>
+            <MarkdownRenderer content={post.content} />
           ) : (
             <p>暂无详细内容...</p>
           )}
