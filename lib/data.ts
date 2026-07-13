@@ -27,14 +27,14 @@ export const featuredPosts: Post[] = [
   },
   {
     id: '3',
-    type: 'moment',
+    type: 'essay' as const,
     title: '今天又调了一天参数',
     slug: '',
     excerpt: '`ΔKi` 又平了，明天继续查。',
     content: '',
     author: { id: 'me', name: 'Petrichor' },
     createdAt: '2026-07-09',
-  } as Post,
+  },
 ];
 
 export const projects: Post[] = [
