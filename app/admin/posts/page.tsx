@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
-import { getAllPosts, deletePost, togglePinned, createPost, updatePost } from '@/lib/admin-db';
+import { getAllPosts, deletePost, togglePinned, createPost, updatePost, uploadImage } from '@/lib/admin-db';
 import type { Post } from '@/lib/types';
 
 export default function AdminPostsPage() {
@@ -22,7 +22,9 @@ export default function AdminPostsPage() {
   });
   const [loadingData, setLoadingData] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [msg, setMsg] = useState('');
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const fetchPosts = useCallback(async () => {
     const p = await getAllPosts();
@@ -85,6 +87,32 @@ export default function AdminPostsPage() {
     fetchPosts();
   };
 
+  // 图片上传：压缩为 WebP → 传到 Supabase Storage → 在光标处插入 Markdown
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    setMsg('');
+    try {
+      const compressed = await compressToWebP(file);
+      const fd = new FormData();
+      fd.append('file', compressed);
+      const url = await uploadImage(fd);
+      if (!url) { setMsg('图片上传失败'); return; }
+
+      const snippet = `![图片](${url})`;
+      const ta = contentRef.current;
+      if (ta) {
+        const pos = ta.selectionStart ?? form.content.length;
+        const next = form.content.slice(0, pos) + `\n${snippet}\n` + form.content.slice(pos);
+        setForm((f) => ({ ...f, content: next }));
+      } else {
+        setForm((f) => ({ ...f, content: f.content + `\n${snippet}\n` }));
+      }
+      setMsg('图片已插入正文');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading || loadingData) {
     return <div className="container" style={{ padding: '100px 0', textAlign: 'center', color: 'var(--text-muted)' }}>加载中...</div>;
   }
@@ -134,22 +162,53 @@ export default function AdminPostsPage() {
 
           <Label>正文 (Markdown)</Label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <input
-              type="file"
-              accept=".md"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const text = await file.text();
-                setForm({ ...form, content: text });
-                // auto-fill title and slug from filename
-                const name = file.name.replace(/\.md$/, '');
-                if (!form.title) setForm((f) => ({ ...f, title: name }));
-                if (!form.slug) setForm((f) => ({ ...f, slug: name.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, '-').replace(/^-|-$/g, '') }));
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                type="file"
+                accept=".md"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const text = await file.text();
+                  setForm({ ...form, content: text });
+                  // auto-fill title and slug from filename
+                  const name = file.name.replace(/\.md$/, '');
+                  if (!form.title) setForm((f) => ({ ...f, title: name }));
+                  if (!form.slug) setForm((f) => ({ ...f, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') }));
+                }}
+                style={{ ...inputStyle, padding: '6px 8px', cursor: 'pointer', flex: 1 }}
+              />
+              <label style={{ ...smallBtn, opacity: uploading ? 0.5 : 1, whiteSpace: 'nowrap' }}>
+                {uploading ? '上传中...' : '+ 插入图片'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+            <textarea
+              ref={contentRef}
+              value={form.content}
+              onChange={(e) => setForm({ ...form, content: e.target.value })}
+              onPaste={(e) => {
+                // 支持直接 Ctrl+V 粘贴截图上传
+                const item = Array.from(e.clipboardData.items).find((i) => i.type.startsWith('image/'));
+                if (item) {
+                  e.preventDefault();
+                  const file = item.getAsFile();
+                  if (file) handleImageUpload(file);
+                }
               }}
-              style={{ ...inputStyle, padding: '6px 8px', cursor: 'pointer' }}
+              placeholder="支持直接粘贴截图（Ctrl+V）自动上传"
+              style={{ ...inputStyle, minHeight: '200px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}
             />
-            <textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} style={{ ...inputStyle, minHeight: '200px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }} />
           </div>
 
           <Label>置顶</Label>
@@ -200,6 +259,28 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 function formatDate(s: string) { return new Date(s).toISOString().slice(0, 10); }
+
+// 前端压缩：限制最大宽度 1600px，转 WebP（质量 0.85），失败则退回原图
+async function compressToWebP(file: File): Promise<File> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const maxW = 1600;
+    const scale = bitmap.width > maxW ? maxW / bitmap.width : 1;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/webp', 0.85)
+    );
+    if (!blob) return file;
+    return new File([blob], file.name.replace(/\.\w+$/, '.webp'), { type: 'image/webp' });
+  } catch {
+    return file;
+  }
+}
 
 const inputStyle: React.CSSProperties = {
   background: 'var(--bg-primary)',

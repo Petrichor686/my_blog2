@@ -88,6 +88,27 @@ export async function togglePinned(id: string, pinned: boolean): Promise<boolean
   return true;
 }
 
+// ========== Images ==========
+
+export async function uploadImage(formData: FormData): Promise<string | null> {
+  const file = formData.get('file') as File | null;
+  if (!file) return null;
+
+  const client = supabaseAdmin();
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'webp';
+  // 用时间戳+随机串命名，避免中文文件名和重名问题
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { error } = await client.storage
+    .from('blog-images')
+    .upload(path, file, { contentType: file.type, cacheControl: '31536000' });
+
+  if (error) { console.error('uploadImage:', error); return null; }
+
+  const { data } = client.storage.from('blog-images').getPublicUrl(path);
+  return data.publicUrl;
+}
+
 // ========== Moments ==========
 
 export async function getAllMoments(): Promise<Moment[]> {
